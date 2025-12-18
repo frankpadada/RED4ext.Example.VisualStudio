@@ -1,4 +1,11 @@
+#include <bit>
+#include <cstdint>
 #include <RED4ext/RED4ext.hpp>
+#include <RED4ext/ResourceLoader.hpp>
+#include <RedLib.hpp>
+
+
+const RED4ext::Sdk* g_Sdk = nullptr;
 
 RED4EXT_C_EXPORT bool RED4EXT_CALL Main(RED4ext::PluginHandle aHandle, RED4ext::EMainReason aReason,
                                         const RED4ext::Sdk* aSdk)
@@ -7,6 +14,7 @@ RED4EXT_C_EXPORT bool RED4EXT_CALL Main(RED4ext::PluginHandle aHandle, RED4ext::
     {
     case RED4ext::EMainReason::Load:
     {
+        aSdk->logger->Trace(aHandle, "Hello World!");
         /*
          * Here you can register your custom functions, initalize variable, create hooks and so on.
          *
@@ -16,7 +24,7 @@ RED4EXT_C_EXPORT bool RED4EXT_CALL Main(RED4ext::PluginHandle aHandle, RED4ext::
          * Returning "true" in this function loads the plugin, returning "false" will unload it and "Main" will be
          * called with "Unload" reason.
          */
-
+        Red::TypeInfoRegistrar::RegisterDiscovered();
         break;
     }
     case RED4ext::EMainReason::Unload:
