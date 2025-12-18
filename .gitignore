@@ -363,3 +363,5 @@ FodyWeavers.xsd
 
 ### Custom ###
 build/
+external/RedLib/
+external/RED4ext.SDK/
