@@ -1,0 +1,14 @@
+{
+  "mod": "AimSplit",
+  "bindings": [
+    {
+      "name": "FreeLookToggle",
+      "bindings": [
+        "IK_Backspace"
+      ],
+      "hold": false,
+      "toggle": false,
+      "repeat": false
+    }
+  ]
+}

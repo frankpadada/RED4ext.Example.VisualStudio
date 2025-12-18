@@ -2,10 +2,112 @@
 #include <cstdint>
 #include <RED4ext/RED4ext.hpp>
 #include <RED4ext/ResourceLoader.hpp>
+#include <RED4ext/SystemUpdate.hpp>
 #include <RedLib.hpp>
 
 
 const RED4ext::Sdk* g_Sdk = nullptr;
+RED4ext::PluginHandle g_pluginHandle = nullptr;
+
+constexpr auto kUpdateName = "AimSplitTick";
+
+class AimSplitSystem : public Red::game::IGameSystem
+{
+public:
+    AimSplitSystem()
+    {
+        s_instance = this;
+
+        if (g_Sdk)
+        {
+            g_Sdk->logger->Trace(g_pluginHandle, "AimSplitSystem constructed");
+        }
+    }
+
+    ~AimSplitSystem() override
+    {
+        s_instance = nullptr;
+
+        if (g_Sdk)
+        {
+            g_Sdk->logger->Trace(g_pluginHandle, "AimSplitSystem destroyed");
+        }
+    }
+
+    static AimSplitSystem* Get()
+    {
+        return s_instance;
+    }
+
+    void ToggleMode()
+    {
+        m_shootMode = !m_shootMode;
+
+        if (g_Sdk)
+        {
+            g_Sdk->logger->TraceF(g_pluginHandle, "AimSplit mode toggled to %s", m_shootMode ? "Shoot" : "Look");
+        }
+    }
+
+    void OnRegisterUpdates(RED4ext::UpdateRegistrar* aRegistrar) override
+    {
+        // Register a per-frame callback to drive split aim logic.
+        aRegistrar->RegisterUpdate(
+            RED4ext::UpdateTickGroup::PlayerAimUpdate,
+            this,
+            kUpdateName,
+            [this](RED4ext::FrameInfo& aFrame, RED4ext::JobQueue& aJobQueue)
+            {
+                OnUpdate(aFrame, aJobQueue);
+            });
+
+        if (g_Sdk)
+        {
+            g_Sdk->logger->Trace(g_pluginHandle, "AimSplitSystem update registered");
+        }
+    }
+
+private:
+    void OnUpdate(RED4ext::FrameInfo& aFrame, RED4ext::JobQueue& aJobQueue)
+    {
+        RED4EXT_UNUSED_PARAMETER(aFrame);
+        RED4EXT_UNUSED_PARAMETER(aJobQueue);
+
+        // TODO: drive camera/aim split each frame using m_shootMode.
+        if (g_Sdk && m_updateLogCount < 3)
+        {
+            g_Sdk->logger->TraceF(g_pluginHandle, "AimSplit OnUpdate tick; mode=%s", m_shootMode ? "Shoot" : "Look");
+            ++m_updateLogCount;
+        }
+    }
+
+    inline static AimSplitSystem* s_instance = nullptr;
+    bool m_shootMode{false};
+    uint32_t m_updateLogCount{0};
+
+    RTTI_IMPL_TYPEINFO(AimSplitSystem);
+    RTTI_IMPL_ALLOCATOR();
+};
+
+RTTI_DEFINE_CLASS(AimSplitSystem, {
+    RTTI_PARENT(Red::game::IGameSystem);
+});
+
+void AimSplit_OnAction()
+{
+    if (auto* system = AimSplitSystem::Get())
+    {
+        system->ToggleMode();
+    }
+    else if (g_Sdk)
+    {
+        g_Sdk->logger->Trace(g_pluginHandle, "AimSplit_OnAction called but system instance is null");
+    }
+}
+
+RTTI_DEFINE_GLOBALS({
+    RTTI_FUNCTION(AimSplit_OnAction);
+});
 
 RED4EXT_C_EXPORT bool RED4EXT_CALL Main(RED4ext::PluginHandle aHandle, RED4ext::EMainReason aReason,
                                         const RED4ext::Sdk* aSdk)
@@ -14,7 +116,10 @@ RED4EXT_C_EXPORT bool RED4EXT_CALL Main(RED4ext::PluginHandle aHandle, RED4ext::
     {
     case RED4ext::EMainReason::Load:
     {
-        aSdk->logger->Trace(aHandle, "Hello World!");
+        g_Sdk = aSdk;
+        g_pluginHandle = aHandle;
+
+        aSdk->logger->Trace(aHandle, "Loading AimSplit mod and registering updates.");
         /*
          * Here you can register your custom functions, initalize variable, create hooks and so on.
          *
