@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<bindings>
-  <!-- Map FreeLookToggle to Backspace on keyboard -->
-  <mapping name="FreeLookToggle_Button" type="Button">
-    <button id="IK_Backspace" />
-  </mapping>
-</bindings>

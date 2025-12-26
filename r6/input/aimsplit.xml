@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bindings>
+  <!-- Button mapping for FreeLookToggle -->
+  <mapping name="FreeLookToggle_Button" type="Button">
+    <button id="IK_Backspace" />
+  </mapping>
+
+  <!-- Add action to the on-foot Exploration context (retain original contents) -->
+  <context name="Exploration">
+    <include name="Camera" />
+    <include name="Locomotion" />
+    <include name="UIExploration" />
+    <include name="Items" />
+    <include name="Combat" />
+    <include name="Abilities" />
+    <include name="VisionActions" />
+    <include name="PhotoMode" />
+    <include name="QuickLoadAndSave" />
+    <action name="VehicleInverseCameraToggle" map="VehicleInverseCameraToggle_Button" />
+    <action name="DriverCombatVisionHold" map="Vision_Hold_Button_Controller" />
+    <action name="FreeLookToggle" map="FreeLookToggle_Button" />
+  </context>
+</bindings>

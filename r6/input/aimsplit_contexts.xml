@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<bindings>
-  <!-- Adds FreeLookToggle to the on-foot Exploration context -->
-  <context name="Exploration">
-    <action name="FreeLookToggle" map="FreeLookToggle_Button" />
-  </context>
-</bindings>

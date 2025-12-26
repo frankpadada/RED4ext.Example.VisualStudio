@@ -1,6 +1,7 @@
 #include <bit>
 #include <cstdint>
 #include <memory>
+#include <chrono>
 #include <RED4ext/RED4ext.hpp>
 #include <RED4ext/ResourceLoader.hpp>
 #include <RED4ext/SystemUpdate.hpp>
@@ -104,6 +105,18 @@ RTTI_DEFINE_CLASS(AimSplitSystem, {
 
 void AimSplit_OnAction()
 {
+    static auto s_lastToggle = std::chrono::steady_clock::now() - std::chrono::milliseconds(500);
+    const auto now = std::chrono::steady_clock::now();
+    if (now - s_lastToggle < std::chrono::milliseconds(150))
+    {
+        if (g_Sdk)
+        {
+            g_Sdk->logger->Trace(g_pluginHandle, "AimSplit_OnAction ignored (debounce)");
+        }
+        return;
+    }
+    s_lastToggle = now;
+
     g_shootMode = !g_shootMode;
 
     if (auto* system = AimSplitSystem::Get())
@@ -136,6 +149,7 @@ RED4EXT_C_EXPORT bool RED4EXT_CALL Main(RED4ext::PluginHandle aHandle, RED4ext::
         g_pluginHandle = aHandle;
 
         aSdk->logger->Trace(aHandle, "Loading AimSplit mod and registering updates.");
+        aSdk->logger->Trace(aHandle, "VRised plugin initializing.");
 
         if (!g_systemInstance)
         {
@@ -189,8 +203,8 @@ RED4EXT_C_EXPORT void RED4EXT_CALL Query(RED4ext::PluginInfo* aInfo)
      * For more information about this function see https://docs.red4ext.com/mod-developers/creating-a-plugin#query.
      */
 
-    aInfo->name = L"RED4ext.Example.VisualStudio";
-    aInfo->author = L"WopsS";
+    aInfo->name = L"VRised";
+    aInfo->author = L"VRised";
     aInfo->version = RED4EXT_SEMVER(1, 0, 0);
     aInfo->runtime = RED4EXT_RUNTIME_LATEST;
     aInfo->sdk = RED4EXT_SDK_LATEST;
