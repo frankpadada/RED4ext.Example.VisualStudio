@@ -1,5 +1,6 @@
 #include <bit>
 #include <cstdint>
+#include <memory>
 #include <RED4ext/RED4ext.hpp>
 #include <RED4ext/ResourceLoader.hpp>
 #include <RED4ext/SystemUpdate.hpp>
@@ -8,6 +9,8 @@
 
 const RED4ext::Sdk* g_Sdk = nullptr;
 RED4ext::PluginHandle g_pluginHandle = nullptr;
+bool g_shootMode = false;
+std::unique_ptr<class AimSplitSystem> g_systemInstance;
 
 constexpr auto kUpdateName = "AimSplitTick";
 
@@ -39,9 +42,15 @@ public:
         return s_instance;
     }
 
+    void SyncMode(bool aShootMode)
+    {
+        m_shootMode = aShootMode;
+    }
+
     void ToggleMode()
     {
         m_shootMode = !m_shootMode;
+        g_shootMode = m_shootMode;
 
         if (g_Sdk)
         {
@@ -95,13 +104,20 @@ RTTI_DEFINE_CLASS(AimSplitSystem, {
 
 void AimSplit_OnAction()
 {
+    g_shootMode = !g_shootMode;
+
     if (auto* system = AimSplitSystem::Get())
     {
-        system->ToggleMode();
+        system->SyncMode(g_shootMode);
     }
     else if (g_Sdk)
     {
         g_Sdk->logger->Trace(g_pluginHandle, "AimSplit_OnAction called but system instance is null");
+    }
+
+    if (g_Sdk)
+    {
+        g_Sdk->logger->TraceF(g_pluginHandle, "AimSplit_OnAction toggled mode to %s", g_shootMode ? "Shoot" : "Look");
     }
 }
 
@@ -120,6 +136,12 @@ RED4EXT_C_EXPORT bool RED4EXT_CALL Main(RED4ext::PluginHandle aHandle, RED4ext::
         g_pluginHandle = aHandle;
 
         aSdk->logger->Trace(aHandle, "Loading AimSplit mod and registering updates.");
+
+        if (!g_systemInstance)
+        {
+            g_systemInstance = std::make_unique<AimSplitSystem>();
+            aSdk->logger->Trace(aHandle, "AimSplitSystem instance created at load");
+        }
         /*
          * Here you can register your custom functions, initalize variable, create hooks and so on.
          *
@@ -137,6 +159,7 @@ RED4EXT_C_EXPORT bool RED4EXT_CALL Main(RED4ext::PluginHandle aHandle, RED4ext::
         /*
          * Here you can free resources you allocated during initalization or during the time your plugin was executed.
          */
+        g_systemInstance.reset();
         break;
     }
     }
